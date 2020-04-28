@@ -123,8 +123,6 @@ In addition, the script also generates:
 
 
 
-
-
 ## To run ansible playbooks
 
    * all playbooks
@@ -141,8 +139,13 @@ In addition, the script also generates:
     ansible-playbook playbooks/settings/addresspool.yml 
 ```
 
-## NOTE:
+## Notes:
    * Ensure that the **OV instance is up and running**. Otherwise the python script will fail to generate playbooks
    * The oneview_config.json contains information to connect to OV. Credential and IP address are configured from the sheet "composer" in the Excel file
    * The oneview_config.json file is created under playbooks and then copied to all subfolders: playbooks/appliance, playbooks/settings, playbooks/networking, playbooks/servers 
    * If you have a playbook to configure firmware baseline, the SPP ISO must be located under **playbooks/appliance**
+
+## To learn ansible syntax for OneView playbooks
+The Examples-Playbooks.zip provide all playbooks generated from the Excel sample file. Use those playbooks as examples of OneView playbooks
+
+Enjoy!
