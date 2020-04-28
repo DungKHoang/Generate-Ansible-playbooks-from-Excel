@@ -75,8 +75,7 @@ Create the following environment variables or create a login shell script to con
 
 
 ## OV configuration Excel file
-Use the Synergy-Sample.xlsx as reference
-In the Excel file, configure the following sheets:
+Use the Synergy-Sample.xlsx as reference. In the Excel file, configure the following sheets:
 
    * Composer_OneView
 
