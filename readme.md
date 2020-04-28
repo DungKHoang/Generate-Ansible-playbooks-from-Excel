@@ -111,15 +111,15 @@ On the Ubuntu machine, execute:
 
 ```
 The script will create a hierarchy of folders that mirrors the OneView structure as seen in the GUI.
-   * a subfolder playbooks from the current directory
-   * playbooks/appliance    ---> YML files related to OV appliance configuration
-   * playbooks/settings     ---> YML files related to OV settings
-   * playbooks/networking   ---> YML files related to OV networking
-   * playbooks/servers      ---> YML files related to OV servers settings
+   * a subfolder **playbooks** from the current directory
+   * **playbooks/appliance**    ---> YML files related to OV appliance configuration
+   * **playbooks/settings**     ---> YML files related to OV settings
+   * **playbooks/networking**   ---> YML files related to OV networking
+   * **playbooks/servers**      ---> YML files related to OV servers settings
 
 In addition, the script also generates:
-   * a shell script all_playbooks.sh that will run all the playbooks in a sequential order
-   * a YML file inventory.yml that collects WWWN, MAC, WWPN of each server profile
+   * a shell script **all_playbooks.sh** that will run all the playbooks in a sequential order
+   * a YML file **inventory.yml** that collects WWWN, MAC, WWPN of each server profile
 
 
 
