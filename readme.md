@@ -23,8 +23,8 @@ The script generates the following ansible playbooks:
 
 ## Prerequisites
    * Virtual machine running Ubuntu 18.09
-   * python 3.7
-   * ansible 2.8.4
+   * python 3.8
+   * ansible 2.8
    * pandas library ( for reading/writing Excel files)
    * pip 
    * oneview-python SDK 5.0.0
@@ -38,29 +38,32 @@ The script generates the following ansible playbooks:
 ## Setup
 In the Ubuntu machine, perform the following operations:
 
-   * sudo apt update
-   * sudo apt install software-properties-common
-   * sudo add-apt-repository ppa:deadsnakes/ppa
-   * sudo apt install python3.8
-   * sudo apt install python3-setuptools
-   * sudo apt install python3-pip
+   1. sudo apt update
+   2. sudo apt install software-properties-common
+   3. sudo add-apt-repository ppa:deadsnakes/ppa
+   #### install python3 and tools
+   4. sudo apt install python3.8
+   5. sudo apt install python3-setuptools
+   6. sudo apt install python3-pip
+   #### install pandas for Excel
+   7. sudo pip3 install pandas
+   8. sudo pip3 install xlrd
 
-   * sudo pip3 install pandas
-   * sudo pip3 install xlrd
-   * sudo pip3 install requests
-   * sudo pip3 install ansible
+   9. sudo pip3 install requests
+   10. sudo pip3 install ansible
 
-   * Install oneview python SDK
-        **  git clone https://github.com/HewlettPackard/oneview-python.git 
-        ** 	cd oneview-python
-        **  pip3 install .
-        ** python setup.py install --user  
+   ### install OneView python SDK 5.0
+   11. Install oneview python SDK
+        *  git clone https://github.com/HewlettPackard/oneview-python.git 
+        *  cd oneview-python
+        *  pip3 install .
+        * python setup.py install --user  
 
     
-   * Install oneview ansible library
-        ** git clone https://github.com/HewlettPackard/oneview-ansible.git
-	    ** cd oneview-ansible
-        ** sudo pip3 install -r requirements.txt   
+   12. Install oneview ansible library
+        *  git clone https://github.com/HewlettPackard/oneview-ansible.git
+	    *  cd oneview-ansible
+        *  sudo pip3 install -r requirements.txt   
     
 
     
@@ -138,7 +141,7 @@ In addition, the script also generates:
 ```
 
 ## NOTE:
-   * Ensure that the OV instance is up adn running. Otherwise the python scfript will fail to generate playbooks
-   * The oneview_config.json conatins information to connect to OV. Credential and IP address are configured from the sheet "composer" in the Excel file
+   * Ensure that the **OV instance is up and running**. Otherwise the python script will fail to generate playbooks
+   * The oneview_config.json contains information to connect to OV. Credential and IP address are configured from the sheet "composer" in the Excel file
    * The oneview_config.json file is created under playbooks and then copied to all subfolders: playbooks/appliance, playbooks/settings, playbooks/networking, playbooks/servers 
-   * If you have a playbook to configure firmware baseline, the SPP ISO must be located under playbooks/appliance
+   * If you have a playbook to configure firmware baseline, the SPP ISO must be located under **playbooks/appliance**
