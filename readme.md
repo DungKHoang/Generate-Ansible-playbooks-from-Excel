@@ -83,8 +83,8 @@ In the Excel file, configure the following sheets:
         **ip**           --> IP address of the OneView instance      
         **userName**     --> administrator name  
         **password**     --> administrator password  
-          
-        Note:         The OneView instance needs to be online as the python script will connect to it to collect information 
+   
+        **Note**:         The OneView instance needs to be online as the python script will connect to it to collect information 
 
    * TimeLocale
    * firmwareBundle
