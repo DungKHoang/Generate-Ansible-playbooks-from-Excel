@@ -59,10 +59,10 @@ In the Ubuntu machine, perform the following operations:
         *  pip3 install .
         * python setup.py install --user  
 
-    
+   ### install OneView Ansible SDK 5.0    
    12. Install oneview ansible library
         *  git clone https://github.com/HewlettPackard/oneview-ansible.git
-	    *  cd oneview-ansible
+	     *  cd oneview-ansible
         *  sudo pip3 install -r requirements.txt   
     
 
