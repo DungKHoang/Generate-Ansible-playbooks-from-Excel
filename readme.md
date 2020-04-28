@@ -79,10 +79,11 @@ Use the Synergy-Sample.xlsx as reference
 In the Excel file, configure the following sheets:
 
    * Composer_OneView
-        ** Ip           --> IP address of the OneView instance. 
+
+        ** Ip           --> IP address of the OneView instance.   
         The OneView instance needs to be online as the python script will connect to it to collect information
-        ** userName     --> administrator name
-        ** password     --> administrator password
+        ** userName     --> administrator name  
+        ** password     --> administrator password  
     
 
    * TimeLocale
