@@ -31,6 +31,7 @@ The script generates the following ansible playbooks:
    * oneview-ansible library 5.0.0
 
    * a running OV instance 5.0
+   * SPP ISO file if you run playbook to upload firmware baseline
 
 
 
@@ -135,3 +136,9 @@ In addition, the script also generates:
     ansible-playbook playbooks/servers/profile.yml 
     ansible-playbook playbooks/settings/addresspool.yml 
 ```
+
+## NOTE:
+   * Ensure that the OV instance is up adn running. Otherwise the python scfript will fail to generate playbooks
+   * The oneview_config.json conatins information to connect to OV. Credential and IP address are configured from the sheet "composer" in the Excel file
+   * The oneview_config.json file is created under playbooks and then copied to all subfolders: playbooks/appliance, playbooks/settings, playbooks/networking, playbooks/servers 
+   * If you have a playbook to configure firmware baseline, the SPP ISO must be located under playbooks/appliance
