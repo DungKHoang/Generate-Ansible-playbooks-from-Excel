@@ -8,6 +8,7 @@ The script generates the following ansible playbooks:
    * firmwarebundle.yml
    * scope.yml
    * timelocale.yml
+   * user.yml
 
    * ethernetnetwork.yml
    * fcnetwork.yml
@@ -85,6 +86,7 @@ Use the Synergy-Sample.xlsx as reference. In the Excel file, configure the follo
    
         **Note**:         The OneView instance needs to be online as the python script will connect to it to collect information 
 
+   * User
    * TimeLocale
    * firmwareBundle
    * AddressPool
