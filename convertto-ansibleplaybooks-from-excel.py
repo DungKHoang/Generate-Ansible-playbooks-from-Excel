@@ -228,28 +228,7 @@ def write_to_file(scriptCode, filename):
 
     file.close()
 
-# ================================================================================================
-#
-#   Sort CSV based on column number
-#
-# ================================================================================================
-def sort_csv(csvFile, column=0):
 
-    ifile       = open(csvFile, 'r')
-    reader      = csv.reader(ifile)
-
-    header      = next(reader)
-    sortedList  = sorted(reader)
-    ifile.close()
-
-    with open(csvFile, 'w') as f:
-        writer = csv.writer(f)
-        writer.writerow(header) 
-        for row in sortedList:
-            if row:
-                writer.writerow(row)
-
-    f.close()
 
 # ================================================================================================
 #
@@ -476,7 +455,7 @@ def generate_time_locale_ansible_script(sheet, to_file):
     # ============= Write scriptCode ====================
     write_to_file(scriptCode, to_file)
 
-##
+
 # ================================================================================================
 #
 #   generate_scope_for_resource
@@ -497,7 +476,7 @@ def generate_scope_for_resource(name, varNameUri, scope, scriptCode):
         scriptCode.append("             resourceAssignments:                        "                                                   )
         scriptCode.append("                 addedResourceUris:                      "                                                   )
         scriptCode.append("                     - {}                                ".format(varNameUri)                                )    
-##
+
 
 # ================================================================================================
 #
@@ -742,6 +721,92 @@ def generate_scopes_ansible_script(sheet, to_file):
     # ============= Write scriptCode ====================
     write_to_file(scriptCode, to_file)
 
+# ================================================================================================
+#
+#  generate_user_ansible_script
+#
+# ================================================================================================
+def generate_user_ansible_script(sheet, to_file):
+
+    print('Creating ansible playbook   =====>           {}'.format(to_file))
+    scriptCode = []
+    scriptCode.append("---"                                                                                                                     )
+    scriptCode.append("- name:  Configure user         "                                                                                        )    
+    build_header(scriptCode)
+
+    columns_names                   = sheet.columns.tolist()
+    sheet                           = sheet.sort_values(columns_names[0])
+    sheet                           = sheet.applymap(str)                       # Convert data frame into string
+
+    sheet                           = sheet[sheet[columns_names[0]]== 'OV']
+    
+
+    scriptCode.append("  tasks:"                                                                                                                )
+    
+    
+    if not sheet.empty:
+        for i in sheet.index:
+            row                     = sheet.loc[i]
+            name                    = row["name"]
+            password                = row["password"]
+            emailAddress            = row["emailAddress"]
+            officePhone             = row["officePhone"]
+            mobilePhone             = row["mobilePhone"]
+            roles                   = row["roles"]
+            scopePermissions        = row["scopePermissions"]
+
+            name                    = name.strip()
+            if name:
+                if roles and scopePermissions:
+                    list_roles      = roles.split('|')
+                    list_perms      = scopePermissions.split('|')
+
+                    for index,value in enumerate(list_perms): 
+                        var_scope   = 'var_{}_uri'.format(value.strip().replace(' ', '').replace('-', '_').lower())
+
+                        if value != 'all':                        
+                            scriptCode.append(CR)
+                            scriptCode.append("     - name: Get scope uri {}                            ".format(value)                                         )
+                            scriptCode.append("       oneview_scope_facts:                              "                                                       )
+                            scriptCode.append("         config: \'{{config}}\'                          "                                                       )
+                            scriptCode.append("     - set_fact:                                         "                                                       )
+                            scriptCode.append("          {}: ".format(var_scope) + "\'{{item.uri}}\'     "                                                       )  
+                            scriptCode.append("       loop:  \'{{scopes}}\'                             "                                                       )  
+                            scriptCode.append("       when:  item.name == \'{}\'                        ".format(value)                                         ) 
+                          
+
+                scriptCode.append(CR)
+                scriptCode.append("     - name: Create user {}                      ".format(name)                                                      )
+                scriptCode.append("       oneview_user:                             "                                                                   )
+                scriptCode.append("         config: \'{{config}}\'                  "                                                                   )
+                scriptCode.append("         state: present                          "                                                                   )
+                scriptCode.append("         data:                                   "                                                                   )
+                scriptCode.append("             name:                       \'{}\'  ".format(name)                                                      )
+                scriptCode.append("             password:                   \'{}\'  ".format(password)                                                  )
+                scriptCode.append("             emailAddress:               \'{}\'  ".format(emailAddress)                                              )
+                scriptCode.append("             officePhone:                \'{}\'  ".format(officePhone)                                               )
+                scriptCode.append("             mobilePhone:                \'{}\'  ".format(mobilePhone)                                               )
+                scriptCode.append("             type:                       UserAndPermissions "                                                        )
+
+
+                if roles:
+                    scriptCode.append("             permissions:                    "                                                                   )
+                    list_roles              = roles.split('|')
+                    for index,value in enumerate(list_perms): 
+                        scriptCode.append("                 - roleName:  {}         ".format(list_roles[index].strip().capitalize())                    )
+
+                        value               = value.strip().replace(' ', '').replace('-', '_').lower()
+                        if value != 'all': 
+                            var_scope           = "\'{{var_" + "{}".format(value) + "_uri}}\'"
+                            scriptCode.append("                   scopeUri:  {}         ".format(var_scope)                                             )
+                        scriptCode.append(CR)
+
+        # end of ethernet networks
+        scriptCode.append("       delegate_to: localhost                            "                                                                   )
+        scriptCode.append(CR) 
+
+    # ============= Write scriptCode ====================
+    write_to_file(scriptCode, to_file)
 
 
 
@@ -782,7 +847,7 @@ def generate_ethernet_networks_ansible_script(sheet, to_file):
             if subnetID:
                 varUri              =  get_subnet_uri_from_id(subnetID, 'id_pools_ipv4_subnet', scriptCode)
 
-            scriptCode.append("                                                     "                                                               )
+            scriptCode.append(CR)
             scriptCode.append("     - name: Create ethernet network {}          ".format(name)                                                      )
             scriptCode.append("       oneview_ethernet_network:                 "                                                                   )
             scriptCode.append("         config: \'{{config}}\'                  "                                                                   )
@@ -2704,7 +2769,9 @@ if __name__ == "__main__":
             composersheet                       = pd.read_excel(excelfile, sheet   ,comment='#' , dtype=str).dropna(how='all', inplace=False).fillna('')
 
         # OV Resources    
-        
+
+        if 'user' == sheet_name:
+            usersheet                           = pd.read_excel(excelfile, sheet   ,comment='#' , dtype=str).dropna(how='all', inplace=False).fillna('')        
         if 'timelocale' == sheet_name:
             timelocalesheet                     = pd.read_excel(excelfile, sheet   ,comment='#' , dtype=str).dropna(how='all', inplace=False).fillna('')
         if 'backup' == sheet_name:
@@ -2828,6 +2895,13 @@ if __name__ == "__main__":
     # OneView settings
     print(CR)
     print('#---------------- Generate playbooks for Oneview settings')
+
+    ymlSubfolder        = ymlFolder + 'appliance/'
+    if  not usersheet.empty:
+        ymlFile             = ymlSubfolder + 'user.yml'
+        generate_user_ansible_script(                   usersheet      ,  ymlFile)
+    
+        add_to_allScripts('Configure users ' , ymlFile)
 
     ymlSubfolder        = ymlFolder + 'settings/'
     if  not timelocalesheet.empty:
