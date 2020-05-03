@@ -2182,17 +2182,16 @@ def generate_profile_or_template(values_in_dict,isProfile,scriptCode):
         scriptCode.append("                 manageBios:               {}         ".format(manageBios)                                                       )
         scriptCode.append("                 overriddenSettings:                                    "                                                        )
         for setting in overriddenSettings.split('|'):                               # format is id=EnergyEfficientTurbo;value=Disabled|id=PowerRegulator;value=StaticHighPerf
-            if setting.startswith('id'):
-                _id,value                       = setting.split(';')
-                id_name,id_attribute            = _id.split('=')
-                id_name                         = id_name.strip(' ')
-                id_attribute                    = id_attribute.strip(' ')
-                value_name, value_attribute     = value.split('=')
-                value_name                      = value_name.strip(' ')
-                value_attribute                 = value_attribute.strip(' ')
-
-                scriptCode.append("                 - {0}:         {1}              ".format(id_name,id_attribute)                                          )
-                scriptCode.append("                   {0}:      {1}                 ".format(value_name,value_attribute)                                    )
+            setting                         = setting.replace(CRLF,'').replace(CR,'')
+            _id,value                       = setting.split(';')
+            id_name,id_attribute            = _id.split('=')
+            id_name                         = id_name.strip(' ')
+            id_attribute                    = id_attribute.strip(' ')
+            value_name, value_attribute     = value.split('=')
+            value_name                      = value_name.strip(' ')
+            value_attribute                 = value_attribute.strip(' ')
+            scriptCode.append("                 - {0}:         {1}              ".format(id_name,id_attribute)                                          )
+            scriptCode.append("                   {0}:      {1}                 ".format(value_name,value_attribute)                                    )
 
     # Firmware
 
@@ -2632,6 +2631,158 @@ def generate_server_profiles_ansible_script(sheet,connectionsheet,localstoragesh
     write_to_file(scriptCode, to_file)
 
 
+
+# ================================================================================================
+#
+#   generate_san_manager_ansible_script
+#
+# ================================================================================================
+def generate_san_manager_ansible_script(sheet, to_file):
+    
+
+    authLevel           = {
+        'none'          : 'none',
+        'authonly'      : 'authnopriv',
+        'authandpriv'   : 'authpriv'
+    }
+    print('Creating ansible playbook   =====>           {}'.format(to_file))    
+    scriptCode = []
+    scriptCode.append("---"                                                                                                                               )
+    scriptCode.append("- name:  Creating san manager             "                                                                                        )    
+    build_header(scriptCode)
+
+    ##
+    scriptCode.append("  tasks:"                                                                                                                          )
+    sheet       = sheet.applymap(str)                       # Convert data frame into string
+    if not sheet.empty:
+        for i in sheet.index:
+            row                         = sheet.loc[i]
+
+            _type                       = row['type'].strip()
+            name                        = row['name'].strip()  
+            port                        = row["port"].strip()                             
+
+            if _type:
+                _type                   = _type.capitalize()
+                if 'Brocade' in _type or 'Bna' in _type:
+                    _type               = 'Brocade Network Advisor'
+                
+                    userName            = row["userName"].strip()
+                    password            = row["password"].strip()
+                    useSSL              = row["useSSL"].capitalize() if row["useSSL"]   	else 'False' 
+                else:
+                    snmpUserName        = row["snmpUserName"].strip()
+                    snmpAuthLevel       = row["snmpAuthLevel"].strip().lower()
+                    snmpAuthProtocol    = row["snmpAuthProtocol"].strip()
+                    snmpAuthPassword    = row["snmpAuthPassword"].strip()
+                    snmpPrivProtocol    = row["snmpPrivProtocol"].strip()
+                    snmpPrivPassword    = row["snmpPrivPassword"].strip()
+
+
+
+                scriptCode.append("     - name: Create san manager                      "                                                                           )
+                scriptCode.append("       oneview_san_manager:                          "                                                                           )
+                scriptCode.append("         config:     \'{{ config }}\'                "                                                                           )
+                scriptCode.append("         state:      present                         "                                                                           )
+                scriptCode.append("         data:                                       "                                                                           )
+                scriptCode.append("             name:                           \'{}\'  ".format(name)                                                              ) 
+                scriptCode.append("             providerDisplayName:             {}     ".format(_type)                                                             )
+                scriptCode.append("             connectionInfo:                         "                                                                           )
+                scriptCode.append("                 - name:                      Host   "                                                                           )
+                scriptCode.append("                   value:                     \'{}\' ".format(name)                                                              )
+                
+                if 'Brocade' in _type:
+                    scriptCode.append("                 - name:                      Port     "                                                                         )
+                    scriptCode.append("                   value:                     {}       ".format(port)                                                            )
+                    scriptCode.append("                 - name:                      UserName "                                                                         )
+                    scriptCode.append("                   value:                     \'{}\' ".format(userName)                                                          )
+                    scriptCode.append("                 - name:                      Password "                                                                         )
+                    scriptCode.append("                   value:                     \'{}\' ".format(password)                                                          )
+                    scriptCode.append("                 - name:                      UseSSL "                                                                           )
+                    scriptCode.append("                   value:                     {}     ".format(useSSL)                                                            )
+
+                else:     
+                    scriptCode.append("                 - name:                      SnmpPort "                                                                         )
+                    scriptCode.append("                   value:                     {}       ".format(port)                                                            )
+                    scriptCode.append("                 - name:                      SnmpUserName "                                                                     )
+                    scriptCode.append("                   value:                     \'{}\'   ".format(snmpUserName)                                                    )
+                    scriptCode.append("                 - name:                      SnmpAuthLevel "                                                                    )
+                    scriptCode.append("                   value:                     \'{}\' ".format(authLevel[snmpAuthLevel] )                                         )
+                    scriptCode.append("                 - name:                      SnmpAuthProtocol "                                                                 )
+                    scriptCode.append("                   value:                     \'{}\' ".format(snmpAuthProtocol)                                                  )
+                    scriptCode.append("                 - name:                      SnmpAuthString "                                                                   )
+                    scriptCode.append("                   value:                     \'{}\' ".format(snmpAuthPassword)                                                  )
+                    scriptCode.append("                 - name:                      SnmpPrivProtocol "                                                                 )
+                    scriptCode.append("                   value:                     \'{}\' ".format(snmpPrivProtocol)                                                  )
+                    scriptCode.append("                 - name:                      SnmpPrivString "                                                                   )
+                    scriptCode.append("                   value:                     \'{}\' ".format(snmpPrivPassword)                                                  )
+                
+                scriptCode.append(CR)
+
+
+
+
+        # end of san Manager
+        scriptCode.append("       delegate_to: localhost                    "                                                                                       )
+        scriptCode.append(CR)
+
+    # ============= Write scriptCode ====================
+    write_to_file(scriptCode, to_file)
+
+
+# ================================================================================================
+#
+#   generate_storage_system_ansible_script
+#
+# ================================================================================================
+def generate_storage_system_ansible_script(sheet, to_file):
+		
+
+    print('Creating ansible playbook   =====>           {}'.format(to_file))    
+    scriptCode = []
+    scriptCode.append("---"                                                                                                                               )
+    scriptCode.append("- name:  Creating storage System          "                                                                                        )    
+    build_header(scriptCode)
+
+    ##
+    scriptCode.append("  tasks:"                                                                                                                          )
+    sheet       = sheet.applymap(str)                       # Convert data frame into string
+    if not sheet.empty:
+        for i in sheet.index:
+            row                         = sheet.loc[i]
+
+            name                        = row['name'].strip()  
+            family                      = row['family'].strip()
+            domain                      = row['domain'].strip()                             if row['domain']    	        else 'NO DOMAIN'
+            userName                    = row["userName"].strip()
+            password                    = row["password"].strip()
+            portGroups                  = row["portGroups"].strip()    
+            ports                       = row["ports"].strip()    
+            vips                        = row["vips"].strip()  
+            showSystemDetails           = row["showSystemDetails"].lower().capitalize()     if row["showSystemDetails"]   	else 'False'    
+            storagePool                 = row["storagePool"].strip()                    
+
+            scriptCode.append("     - name: Create storage systems                  "                                                                           )
+            scriptCode.append("       oneview_storage_system:                       "                                                                           )
+            scriptCode.append("         config:     \'{{ config }}\'                "                                                                           )
+            scriptCode.append("         state:      present                         "                                                                           )
+            scriptCode.append("         data:                                       "                                                                           )
+            scriptCode.append("             hostname:                       \'{}\'  ".format(name)                                                              ) 
+            scriptCode.append("             family:                         {}      ".format(family)                                                            )
+            scriptCode.append("             credentials:                            "                                                                           )
+            scriptCode.append("                 - username:                 {}      ".format(userName)                                                          )
+            scriptCode.append("                   password:                 {}      ".format(password)                                                          )
+
+
+           # end of storage Systems
+        scriptCode.append("       delegate_to: localhost                    "                                                                            )
+        scriptCode.append(CR)
+
+    # ============= Write scriptCode ====================
+    write_to_file(scriptCode, to_file) 
+
+
+
 # ================================================================================================
 #
 #   generate_inventory_file_ansible_script
@@ -2755,11 +2906,12 @@ if __name__ == "__main__":
 
 
     versionsheet            = composersheet = pd.DataFrame()
-    timelocalesheet         = backupconfigsheet = firmwaresheet = snmpsheet = addresspoolsheet = scopesheet = pd.DataFrame()
+    usersheet               = timelocalesheet = backupconfigsheet = firmwaresheet = snmpsheet = addresspoolsheet = scopesheet = pd.DataFrame()
     ethernetnetworksheet    = fcnetworksheet = networksetsheet = pd.DataFrame()
     ligsheet                = ligsnmpsheet = uplinksetsheet  = pd.DataFrame()
     enclosuregroupsheet     = logicalenclosuresheet = pd.DataFrame() 
     profilesheet            = profiletemplatesheet = profileconnectionsheet  = profilelocalstoragesheet = profilesanstoragesheet  = profileilosheet = pd.DataFrame()
+    sanmanagersheet          = storagesystemsheet = pd.DataFrame()
 
     for sheet in xl.sheet_names:
         sheet_name          = sheet.lower()
@@ -2803,6 +2955,12 @@ if __name__ == "__main__":
 
         if 'lig-snmp' == sheet_name:
             ligsnmpsheet                        = pd.read_excel(excelfile, sheet   ,comment='#' , dtype=str).dropna(how='all', inplace=False).fillna('')   
+
+        if 'sanmanager' == sheet_name:
+            sanmanagersheet                     = pd.read_excel(excelfile, sheet   ,comment='#' , dtype=str).dropna(how='all', inplace=False).fillna('')   
+
+        if 'storagesystem' == sheet_name:
+            storagesystemsheet                  = pd.read_excel(excelfile, sheet   ,comment='#' , dtype=str).dropna(how='all', inplace=False).fillna('') 
 
         if 'enclosuregroup' == sheet_name:
             enclosuregroupsheet                 = pd.read_excel(excelfile, sheet   ,comment='#' , dtype=str).dropna(how='all', inplace=False).fillna('')
@@ -2864,6 +3022,10 @@ if __name__ == "__main__":
         os.makedirs(subFolder)
     shutil.copy(config_file, subFolder)         # copy oneview_config.json
 
+    subFolder      = ymlFolder + 'storage/'
+    if not os.path.isdir(subFolder):
+        os.makedirs(subFolder)
+    shutil.copy(config_file, subFolder)         # copy oneview_config.json
 
     # Connect to new OneView instance to collect interconnect types information
     print(CR)
@@ -2969,6 +3131,22 @@ if __name__ == "__main__":
         add_to_allScripts('Step {} - '.format(sequence) + 'Configure logical interconnectgroup' , ymlFile)
         sequence = sequence + 1
     
+    ymlSubfolder        = ymlFolder + 'storage/'
+    if not sanmanagersheet.empty:
+        ymlFile             = ymlSubfolder + 'sanmanager.yml'
+        generate_san_manager_ansible_script(   sanmanagersheet ,  ymlFile )
+
+        add_to_allScripts('Step {} - '.format(sequence) + 'Configure SAN manager' , ymlFile)
+        sequence = sequence + 1
+
+
+    if not storagesystemsheet.empty:
+        ymlFile             = ymlSubfolder + 'storagesystem.yml'
+        generate_storage_system_ansible_script(   storagesystemsheet ,  ymlFile )
+
+        add_to_allScripts('Step {} - '.format(sequence) + 'Configure Storage System' , ymlFile)
+        sequence = sequence + 1
+
     ymlSubfolder        = ymlFolder + 'servers/'
     if not enclosuregroupsheet.empty:
         ymlFile             = ymlSubfolder + 'enclosuregroup.yml'
